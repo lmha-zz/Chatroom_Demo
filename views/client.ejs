@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title><%= title %></title>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+		io = io.connect();
+		var name = prompt('Type your name');
+		io.emit('new_user_join', name);
+
+		io.on('existing_users', function(users) {
+			console.log(users);
+			for(user in users) {
+				html = "<div id='"+user+"' class='col-sm-3'><div class='panel panel-warning'><div class='panel-heading'>"+users[user]+"</div><div class='panel-body'></div></div></div>";
+				$('#users').append(html);
+			}
+		})
+
+		io.on('new_user_joined', function(data) {
+			html = "<div id='"+data.sessionID+"' class='col-sm-3'><div class='panel panel-warning'><div class='panel-heading'>"+data.new_user+"</div><div class='panel-body'></div></div></div>";
+			$(html).hide().appendTo('#users').fadeIn(1000);
+		});
+
+		io.on('user_disconnected', function(update) {
+			document.getElementById(update).remove();
+		})
+		io.on('reset_chatroom', function() {
+			$('#users').empty();
+			var name = prompt('Type your name');
+			io.emit('new_user_join', name);
+		})
+
+	</script>
+</head>
+<body>
+	<div class="container">
+		<div id="users" class="row"></div>
+		<!-- <div class="row">
+			<div class="col-sm-4">
+				<form action="/reset" method="post">
+					<input type="submit" value="reset chatrooms">
+				</form>
+			</div>
+		</div> -->
+	</div>
+</body>
+</html>

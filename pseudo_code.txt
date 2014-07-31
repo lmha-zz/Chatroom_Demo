@@ -1,0 +1,81 @@
+1) have the nodeJS server render views/index.ejs that has the html content for the clinet whenever the client request '/'
+
+routes/index.js:
+	app.get('/', function(req, res) {
+		res.render('index', {});
+	})
+
+
+2) in the client code, have a javascript code that asks the user for their name and store this user input in a variable called name.
+
+
+views/client.ejs
+	<script>
+		var name = prompt('What is your name?');
+
+	</script>
+
+
+3) have the client EMIT 'got_a_new_user' and pass 'name' to the server.
+
+	<script>
+		var name = prompt('What is your name?');
+
+		io = io.connect();
+		io.emit('got_a_new_user', {name: name, sessionID: sessionID});
+
+
+	</script>
+
+
+4) have the server LISTEN for an event called 'got_a_new_user' and when that even gets triggered
+4.1)have the server BROADCAST AN EVENT called 'new_user' to the clients with the name of the new user attached to this event 
+
+routes/index.js:
+	app.io.route('got_a_new_user', function(req, res) {
+		app.io.broadcast('new_user', { new_user_name: req.data.name })
+	})
+
+
+4.2) we store the name/sessionID of the new user in a variable/array/hass called users 
+
+	var users = {};
+	users[sessionId] = { name: req.data.name }
+
+
+4.3) to the person who sent this request, we EMIT an event called 'existing_users' with all the users data.
+
+routes/index.js:
+	app.io.route('got_a_new_user', function(req, res) {
+		app.io.broadcast('new_user', { new_user_name: req.data.name });
+		req.io.emit('existing_users', users);
+	})
+
+
+5) have the client LISTEN for an event caleld 'new_user' and when this event gets triggered, have the client render this information in jQuery somewhere in the HTML.
+
+	<script>
+		var name = prompt('What is your name?');
+
+		io = io.connect();
+		io.emit('got_a_new_user', {name: name, sessionID: sessionID});
+
+		io.on('new_user', function(data) {
+			//can see data by console.log(data)
+			//render this info in the HTML
+		})
+	</script>
+
+
+
+6) have the server listen for an event called 'disconnect', and when this occurs, broadcast to all the clients an event 'disconnect_user' with some data (name of the disconnected user and sessionID) (NOTE msut pass something unique to each client in case mutliple clients with same name)
+
+	
+	
+
+7) have the client listen for an event 'disconnect_user' and when this gets triggered, have the client remove the proper jQuery box (corresponding client).
+
+
+
+
+
